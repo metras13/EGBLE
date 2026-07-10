@@ -33,6 +33,9 @@ channel fades on to off over six seconds and repeats. No BLE, no app.
    arduino-cli compile --fqbn esp32:esp32:esp32c3 firmware/egble-controller
    arduino-cli upload  --fqbn esp32:esp32:esp32c3 -p /dev/ttyACM0 firmware/egble-controller
    ```
+   ESP32-C3 SuperMini note: if the port will not take an upload, force download
+   mode by holding BOOT, tapping RESET, releasing RESET, then releasing BOOT,
+   and upload again. Some units need this on every connect.
 3. Power the bench 5V. Channel 0 (GPIO3) should snap to full and fade to off
    over six seconds, then repeat.
 

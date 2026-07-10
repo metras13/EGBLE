@@ -77,13 +77,24 @@ non-strapping, non-USB pins:
 GPIO 0, 20, 21 are left free for future use. This table is mirrored in
 `firmware/egble-controller/config.h`; keep the two in sync.
 
+### Board compatibility
+
+Any ESP32-C3 board with native USB works. Verified pin-compatible with the
+Waveshare ESP32-C3-Zero and the Teyleten / generic ESP32-C3 SuperMini. All six
+PWM pins (3, 4, 5, 6, 7, 10) and the trigger pin (1) are broken out on both.
+The SuperMini labels its castellated pads by GPIO number, so the silkscreen
+matches this table directly. On the SuperMini, GPIO8 drives the onboard LED and
+GPIO9 is the BOOT button; both are already avoided here, so no change is needed.
+Some SuperMini clones use a weaker PCB antenna, which can shorten BLE range but
+does not affect a bench test.
+
 ## Bill of materials
 
 Fill in the measured single-inverter current before ordering the supply.
 
 | Qty | Part                        | Spec                                  |
 |-----|-----------------------------|---------------------------------------|
-| 1   | ESP32-C3-Zero               | Waveshare or clone, USB-C             |
+| 1   | ESP32-C3 board              | C3-Zero or C3 SuperMini, USB-C        |
 | 6   | N-channel MOSFET            | AO3400 class, logic-level             |
 | 6   | Gate resistor               | 100 ohm, 1/8 W                        |
 | 6   | Gate pulldown resistor      | 10k, 1/8 W                            |

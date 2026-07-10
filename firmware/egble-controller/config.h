@@ -1,13 +1,16 @@
 // EGBLE Controller - build configuration and pin map
 //
-// Target: ESP32-C3-Zero (Waveshare / clone), single core RISC-V, native USB CDC.
+// Target: any ESP32-C3 board with native USB CDC. Verified pin-compatible with
+// the Waveshare ESP32-C3-Zero and the Teyleten / generic ESP32-C3 SuperMini.
+// Single core RISC-V.
 //
 // GPIO selection rationale (see docs/hardware.md for the full table):
 //   ESP32-C3 usable GPIOs are 0-10 and 18-21. GPIO11-17 are wired to the
 //   internal SPI flash and must never be used. Strapping pins 2, 8 and 9
 //   change boot behavior when held, so they are avoided. GPIO18/19 are the
 //   native USB D-/D+ pair used for the serial console and flashing, so they
-//   are avoided as well.
+//   are avoided as well. On the SuperMini this also dodges the onboard LED
+//   (GPIO8) and the BOOT button (GPIO9), so the same pins work unchanged.
 //
 // Safe pins chosen for the six PWM channels: 3, 4, 5, 6, 7, 10.
 // One spare GPIO (1) is reserved for an optional physical trigger input.
