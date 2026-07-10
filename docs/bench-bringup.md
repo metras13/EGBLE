@@ -14,6 +14,8 @@ Stage 1 needs no phone and proves the hardware. Stage 2 brings up the app.
   100 ohm resistor, 10k gate to ground, MOSFET source to ground, drain to the
   inverter ground return, inverter V+ to the bench 5V.
 
+See `docs/wiring-single-channel.svg` for the full single-channel bench diagram.
+
 Reminder: the board never carries inverter current. It only drives the gate.
 
 ## Stage 1: fade with no app (most reliable first test)
