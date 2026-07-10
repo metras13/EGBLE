@@ -176,8 +176,27 @@ Scene allOff() {
   return s;
 }
 
+// Fade 6s: the first bench test. Every channel snaps to full, fades to off over
+// six seconds through the gamma ramp, then repeats. Confirms the whole path
+// (PWM, gamma, MOSFET, inverter) with no phone attached. To make it a symmetric
+// breathe instead, split the time into fadeInMs and fadeOutMs.
+Scene fade6s() {
+  Scene s;
+  strncpy(s.name, "Fade 6s", sizeof(s.name) - 1);
+  for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
+    s.ch[i].enabled = true;
+    s.ch[i].cfg.type      = PAT_FADE_PULSE;
+    s.ch[i].cfg.bri       = 255;
+    s.ch[i].cfg.fadeInMs  = 0;      // snap on
+    s.ch[i].cfg.holdMs    = 0;
+    s.ch[i].cfg.fadeOutMs = 6000;   // six second fade to off
+    s.ch[i].cfg.gapMs     = 0;
+  }
+  return s;
+}
+
 const char* const BUILTIN_NAMES[] = {
-  "Bike Vest", "Retail Sequence", "SOS", "All On", "All Off",
+  "Fade 6s", "Bike Vest", "Retail Sequence", "SOS", "All On", "All Off",
 };
 
 }  // namespace
@@ -193,6 +212,7 @@ const char* SceneManager::builtinName(uint8_t index) {
 
 bool SceneManager::builtin(const char* name, Scene& out) {
   if (!name) return false;
+  if (strcasecmp(name, "Fade 6s") == 0)         { out = fade6s();         return true; }
   if (strcasecmp(name, "Bike Vest") == 0)       { out = bikeVest();       return true; }
   if (strcasecmp(name, "Retail Sequence") == 0) { out = retailSequence(); return true; }
   if (strcasecmp(name, "SOS") == 0)             { out = sosAll();         return true; }

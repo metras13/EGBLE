@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="680" viewBox="0 0 1000 680" font-family="Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="1000" height="680" fill="#ffffff"/>
+
+  <text x="500" y="28" text-anchor="middle" font-size="20" font-weight="bold" fill="#111">EGBLE single-channel bench wiring</text>
+  <text x="500" y="50" text-anchor="middle" font-size="14" fill="#555">Low-side switching. Repeat this block x6 for the full controller.</text>
+
+  <!-- ===================== COMPONENT BOXES ===================== -->
+
+  <!-- Bench 5V supply -->
+  <rect x="40" y="90" width="190" height="110" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="2"/>
+  <text x="135" y="120" text-anchor="middle" font-size="15" font-weight="bold" fill="#111">Bench 5V supply</text>
+  <text x="135" y="140" text-anchor="middle" font-size="12" fill="#666">(powers inverter only)</text>
+  <text x="150" y="162" font-size="13" fill="#c0392b" font-weight="bold">+5V</text>
+  <text x="150" y="192" font-size="13" fill="#111" font-weight="bold">GND</text>
+  <circle cx="230" cy="157" r="4" fill="#c0392b"/>
+  <circle cx="230" cy="187" r="4" fill="#111"/>
+
+  <!-- EL inverter -->
+  <rect x="740" y="90" width="210" height="150" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="2"/>
+  <text x="845" y="120" text-anchor="middle" font-size="15" font-weight="bold" fill="#111">EL inverter</text>
+  <text x="845" y="139" text-anchor="middle" font-size="12" fill="#666">(one target inverter)</text>
+  <circle cx="740" cy="160" r="4" fill="#c0392b"/>
+  <circle cx="740" cy="215" r="4" fill="#111"/>
+  <text x="752" y="164" font-size="13" fill="#c0392b" font-weight="bold">V+ (5V in)</text>
+  <text x="752" y="219" font-size="13" fill="#111" font-weight="bold">V- (gnd return)</text>
+  <!-- EL output leads -->
+  <line x1="950" y1="150" x2="985" y2="150" stroke="#0a9" stroke-width="3"/>
+  <line x1="950" y1="180" x2="985" y2="180" stroke="#0a9" stroke-width="3"/>
+  <text x="905" y="228" font-size="12" fill="#0a9" font-weight="bold">to EL wire</text>
+
+  <!-- ESP32 board -->
+  <rect x="40" y="380" width="200" height="150" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="2"/>
+  <text x="140" y="410" text-anchor="middle" font-size="15" font-weight="bold" fill="#111">ESP32-C3-Zero</text>
+  <text x="140" y="429" text-anchor="middle" font-size="12" fill="#666">(drives gate only)</text>
+  <text x="150" y="454" font-size="13" fill="#0a9" font-weight="bold">GPIO3</text>
+  <text x="163" y="499" font-size="13" fill="#111" font-weight="bold">GND</text>
+  <circle cx="240" cy="449" r="4" fill="#0a9"/>
+  <circle cx="240" cy="494" r="4" fill="#111"/>
+
+  <!-- MOSFET -->
+  <rect x="430" y="360" width="160" height="140" rx="6" fill="#f5f5f5" stroke="#333" stroke-width="2"/>
+  <text x="510" y="425" text-anchor="middle" font-size="15" font-weight="bold" fill="#111">N-ch MOSFET</text>
+  <text x="510" y="445" text-anchor="middle" font-size="12" fill="#666">AO3400 class</text>
+  <!-- pins -->
+  <circle cx="430" cy="430" r="4" fill="#0a9"/>
+  <text x="440" y="415" font-size="13" fill="#111" font-weight="bold">G</text>
+  <circle cx="510" cy="360" r="4" fill="#111"/>
+  <text x="520" y="352" font-size="13" fill="#111" font-weight="bold">D</text>
+  <circle cx="510" cy="500" r="4" fill="#111"/>
+  <text x="520" y="516" font-size="13" fill="#111" font-weight="bold">S</text>
+
+  <!-- ===================== WIRES ===================== -->
+
+  <!-- +5V rail: PSU +5V -> inverter V+ -->
+  <polyline points="230,157 700,157 700,160 740,160" fill="none" stroke="#c0392b" stroke-width="3"/>
+  <text x="455" y="149" text-anchor="middle" font-size="12" fill="#c0392b" font-weight="bold">+5V</text>
+
+  <!-- Inverter V- (ground return) -> MOSFET drain (the switched low side) -->
+  <polyline points="740,215 660,215 660,320 510,320 510,360" fill="none" stroke="#111" stroke-width="3"/>
+  <text x="620" y="310" text-anchor="middle" font-size="12" fill="#111" font-weight="bold">inverter ground return (switched)</text>
+
+  <!-- Gate signal: GPIO3 -> 100 ohm -> gate -->
+  <polyline points="240,449 300,449 300,430 320,430" fill="none" stroke="#0a9" stroke-width="3"/>
+  <rect x="320" y="418" width="62" height="24" rx="3" fill="#fff" stroke="#0a9" stroke-width="2"/>
+  <text x="351" y="435" text-anchor="middle" font-size="12" fill="#0a9" font-weight="bold">100 &#937;</text>
+  <polyline points="382,430 430,430" fill="none" stroke="#0a9" stroke-width="3"/>
+  <text x="300" y="405" font-size="12" fill="#0a9" font-weight="bold">PWM</text>
+
+  <!-- Gate pulldown 10k: gate net -> ground rail -->
+  <polyline points="405,430 405,470" fill="none" stroke="#111" stroke-width="3"/>
+  <rect x="393" y="470" width="24" height="56" rx="3" fill="#fff" stroke="#111" stroke-width="2"/>
+  <text x="428" y="503" font-size="12" fill="#111" font-weight="bold">10k</text>
+  <polyline points="405,526 405,600" fill="none" stroke="#111" stroke-width="3"/>
+  <circle cx="405" cy="430" r="3.5" fill="#0a9"/>
+
+  <!-- Source -> ground rail -->
+  <polyline points="510,500 510,600" fill="none" stroke="#111" stroke-width="3"/>
+
+  <!-- ESP32 GND -> ground rail -->
+  <polyline points="240,494 270,494 270,600" fill="none" stroke="#111" stroke-width="3"/>
+
+  <!-- PSU GND -> ground rail (down the left side) -->
+  <polyline points="230,187 30,187 30,600" fill="none" stroke="#111" stroke-width="3"/>
+
+  <!-- COMMON GROUND rail -->
+  <line x1="30" y1="600" x2="620" y2="600" stroke="#111" stroke-width="4"/>
+  <text x="325" y="624" text-anchor="middle" font-size="14" fill="#111" font-weight="bold">COMMON GROUND (supply -, MOSFET source, gate pulldown, ESP32 GND)</text>
+  <!-- ground junction dots -->
+  <circle cx="270" cy="600" r="4" fill="#111"/>
+  <circle cx="405" cy="600" r="4" fill="#111"/>
+  <circle cx="510" cy="600" r="4" fill="#111"/>
+  <circle cx="30" cy="600" r="4" fill="#111"/>
+
+  <!-- ===================== LEGEND ===================== -->
+  <rect x="670" y="300" width="300" height="120" rx="6" fill="#fbfbfb" stroke="#ccc" stroke-width="1"/>
+  <text x="686" y="322" font-size="13" font-weight="bold" fill="#111">Legend</text>
+  <line x1="686" y1="342" x2="726" y2="342" stroke="#c0392b" stroke-width="3"/>
+  <text x="734" y="346" font-size="12" fill="#333">+5V (inverter power)</text>
+  <line x1="686" y1="366" x2="726" y2="366" stroke="#111" stroke-width="3"/>
+  <text x="734" y="370" font-size="12" fill="#333">Ground / current return</text>
+  <line x1="686" y1="390" x2="726" y2="390" stroke="#0a9" stroke-width="3"/>
+  <text x="734" y="394" font-size="12" fill="#333">PWM gate signal (3.3V)</text>
+
+  <!-- ===================== CAUTION NOTE ===================== -->
+  <rect x="640" y="440" width="330" height="118" rx="6" fill="#fff8e1" stroke="#e0a800" stroke-width="1.5"/>
+  <text x="656" y="462" font-size="13" font-weight="bold" fill="#8a6d00">Why the board stays safe</text>
+  <text x="656" y="484" font-size="12" fill="#5a4a00">Inverter current flows: supply +5V into V+,</text>
+  <text x="656" y="502" font-size="12" fill="#5a4a00">through the inverter, out V-, through the</text>
+  <text x="656" y="520" font-size="12" fill="#5a4a00">MOSFET drain to source, to ground. It never</text>
+  <text x="656" y="538" font-size="12" fill="#5a4a00">flows through the ESP32. The 10k holds the</text>
+  <text x="656" y="556" font-size="12" fill="#5a4a00">channel off during boot. Pins G/D/S: verify vs your part's datasheet.</text>
+</svg>
