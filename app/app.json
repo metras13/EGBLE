@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "EGBLE",
+    "slug": "egble",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "egble",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ellumiglow.egble",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "EGBLE uses Bluetooth to control your EL inverter controller.",
+        "NSBluetoothPeripheralUsageDescription": "EGBLE uses Bluetooth to control your EL inverter controller.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.ellumiglow.egble",
+      "permissions": [
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "modes": ["central"],
+          "bluetoothAlwaysPermission": "EGBLE uses Bluetooth to control your EL inverter controller."
+        }
+      ]
+    ]
+  }
+}
