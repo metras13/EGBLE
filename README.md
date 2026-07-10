@@ -11,6 +11,9 @@ The ESP32 drives six MOSFET gates; the inverters are powered by a separate 5V
 supply on a common ground. The ESP32 never carries inverter current. See
 `docs/hardware.md`.
 
+First bench test: the firmware boots into a six second on-to-off fade with no
+phone required. Start at `docs/bench-bringup.md`.
+
 ## Layout
 
 ```

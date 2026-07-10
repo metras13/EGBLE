@@ -43,9 +43,12 @@ void setup() {
   engine.begin();
   scenes.begin();
 
-  // Boot into the Bike Vest scene so the device is useful with no phone.
+  // Boot into the Fade 6s scene so the very first bench test needs no phone:
+  // power the board and the wired channels fade on to off over six seconds,
+  // repeating. Change this to "Bike Vest" (or any built-in) once the fade is
+  // confirmed.
   Scene boot;
-  if (SceneManager::builtin("Bike Vest", boot)) scenes.apply(engine, boot);
+  if (SceneManager::builtin("Fade 6s", boot)) scenes.apply(engine, boot);
 
   ble.begin("EGBLE-Controller", engine, scenes);
   console.begin(engine, scenes, ble);

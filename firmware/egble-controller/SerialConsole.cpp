@@ -115,6 +115,17 @@ void SerialConsole::handleLine(char* line) {
     return;
   }
 
+  if (strcmp(cmd, "fade") == 0) {
+    // Shorthand for the first bench test: the 6 second on to off fade.
+    Scene s;
+    if (SceneManager::builtin("Fade 6s", s)) {
+      scenes_->apply(*eng_, s);
+      if (ble_) ble_->notifyState();
+      Serial.println("fade 6s on all channels");
+    }
+    return;
+  }
+
   if (strcmp(cmd, "off") == 0) {
     PatternConfig c; c.type = PAT_OFF;
     eng_->setPatternAll(c);
@@ -133,6 +144,7 @@ void SerialConsole::printHelp() {
   Serial.println("  state                dump per-channel state");
   Serial.println("  scenes               list built-in scenes and saved slots");
   Serial.println("  recall <name>        apply a built-in scene by name");
+  Serial.println("  fade                 6 second on to off fade on all channels");
   Serial.println("  level <ch> <0-255>   set a channel to a solid brightness");
   Serial.println("  sweep <ch>           gamma fade sweep to eyeball smoothness");
   Serial.println("  raw <ch> <0-1023>    write raw PWM duty, gamma bypassed");
