@@ -131,13 +131,15 @@ Fill in the measured single-inverter current before ordering the supply.
 | 6   | N-channel MOSFET            | logic-level: FQP30N06L (TO-220, bench) or AO3400 class (SOT-23) |
 | 6   | Gate resistor               | 100 ohm, 1/8 W                        |
 | 6   | Gate pulldown resistor      | 10k to 47k (12.5k is fine), any wattage |
-| 1   | 5V DC supply                | rated for measured_current x 6 + 20%  |
+| 1   | 5V DC supply                | about 40 mA per inverter x 6 = 240 mA; a 5V 1A supply is ample |
 | 6   | EL inverter                 | target product, 5V input              |
 | 0-6 | Snubber/flyback diode       | only if bench testing shows spikes    |
 | 1   | Protoboard / perfboard      | v1 build target                       |
 
 Measured single-inverter current at 5V under representative EL load:
-`__________ mA` (fill in during Phase 1).
+about 40 mA at peak brightness, and essentially 0 mA when off (measured on the
+bench during Phase 1). Six channels at once draw roughly 240 mA, so a 5V 1A
+supply has comfortable headroom.
 
 ## Build target
 
