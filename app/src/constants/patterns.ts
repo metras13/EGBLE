@@ -13,7 +13,8 @@ export type PatternType =
   | 'FADE_PULSE'
   | 'SOS'
   | 'TURN_SIGNAL'
-  | 'SEQUENCE';
+  | 'SEQUENCE'
+  | 'FLAME';
 
 export const PATTERN_TYPES: PatternType[] = [
   'OFF',
@@ -23,6 +24,7 @@ export const PATTERN_TYPES: PatternType[] = [
   'SOS',
   'TURN_SIGNAL',
   'SEQUENCE',
+  'FLAME',
 ];
 
 /** All timing is milliseconds. bri is a perceptual level 0..255. */
@@ -61,6 +63,7 @@ export const PATTERN_FIELDS: Record<PatternType, (keyof PatternConfig)[]> = {
   SOS: ['bri', 'onMs'],
   TURN_SIGNAL: ['bri', 'onMs', 'offMs'],
   SEQUENCE: ['bri', 'stepMs', 'overlapMs'],
+  FLAME: ['bri', 'onMs'],
 };
 
 /** Human labels for the editor sliders. */

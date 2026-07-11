@@ -1,7 +1,9 @@
 #include "PatternEngine.h"
 #include <Arduino.h>
+#include <esp_random.h>   // esp_random() for seeding the FLAME flicker
 
 void PatternEngine::begin() {
+  randomSeed(esp_random());   // vary the FLAME flicker between boots
   for (uint8_t i = 0; i < NUM_CHANNELS; i++) {
     chan_[i].begin(CHANNEL_PINS[i]);
     rt_[i] = ChannelRuntime{};
@@ -23,8 +25,36 @@ void PatternEngine::tick(uint32_t nowMs) {
       chan_[i].setBrightness(0);
       continue;
     }
+    if (rt_[i].cfg.type == PAT_FLAME) {
+      updateFlame(i, nowMs);
+      chan_[i].setBrightness(rt_[i].flameLevel);
+      continue;
+    }
     chan_[i].setBrightness(computeLevel(i, nowMs));
   }
+}
+
+// FLAME: a candle-like flicker. Every interval, pick a new random target
+// between about 45 and 100 percent of the cap, then ease toward it each tick so
+// the motion is soft rather than jumpy. onMs sets the flicker speed (smaller is
+// livelier), bri sets the ceiling. Gamma still applies downstream.
+void PatternEngine::updateFlame(uint8_t ch, uint32_t nowMs) {
+  ChannelRuntime& rt = rt_[ch];
+  const PatternConfig& c = rt.cfg;
+  uint16_t interval = c.onMs ? c.onMs : 80;
+  if (nowMs >= rt.flameNextMs) {
+    uint8_t lo   = (uint16_t)c.bri * 45 / 100;
+    uint8_t span = c.bri > lo ? c.bri - lo : 0;
+    rt.flameTarget = lo + (span ? (uint8_t)random(span + 1) : 0);
+    rt.flameNextMs = nowMs + interval / 2 + (uint32_t)random(interval);
+  }
+  int delta = (int)rt.flameTarget - (int)rt.flameLevel;
+  int step  = delta / 4;
+  if (step == 0 && delta != 0) step = (delta > 0) ? 1 : -1;
+  int nl = (int)rt.flameLevel + step;
+  if (nl < 0)   nl = 0;
+  if (nl > 255) nl = 255;
+  rt.flameLevel = (uint8_t)nl;
 }
 
 // Scale a brightness cap by a 0..1 fraction expressed as num/den.
@@ -135,6 +165,8 @@ void PatternEngine::setPattern(uint8_t ch, const PatternConfig& cfg) {
   rt_[ch].cfg = cfg;
   rt_[ch].startMs = millis();
   rt_[ch].rawOverride = -1;  // a real pattern clears any bench override
+  rt_[ch].flameNextMs = 0;   // re-seed flicker if this is a FLAME
+  rt_[ch].flameLevel  = 0;
   markDirty();
 }
 
@@ -151,6 +183,8 @@ void PatternEngine::setPatternGroup(uint8_t groupId, const PatternConfig& cfg) {
       rt_[i].cfg = cfg;
       rt_[i].startMs = now;
       rt_[i].rawOverride = -1;
+      rt_[i].flameNextMs = 0;
+      rt_[i].flameLevel  = 0;
     }
   }
   markDirty();
@@ -162,6 +196,8 @@ void PatternEngine::setPatternAll(const PatternConfig& cfg) {
     rt_[i].cfg = cfg;
     rt_[i].startMs = now;
     rt_[i].rawOverride = -1;
+    rt_[i].flameNextMs = 0;
+    rt_[i].flameLevel  = 0;
   }
   markDirty();
 }
