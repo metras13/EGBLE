@@ -7,8 +7,11 @@ Stage 1 needs no phone and proves the hardware. Stage 2 brings up the app.
 ## Before you start
 
 - ESP32-C3-Zero dev board, USB-C cable.
-- One EL inverter, one logic-level N-channel MOSFET (AO3400 class), a 100 ohm
-  gate resistor, a 10k gate-to-ground pulldown.
+- One EL inverter, one logic-level N-channel MOSFET (FQP30N06L in TO-220 is the
+  easy bench part; AO3400 class also works), a 100 ohm gate resistor, and a
+  gate-to-ground pulldown anywhere from 10k to 47k.
+  FQP30N06L pinout, printed side facing you and legs down, left to right:
+  pin 1 = Gate, pin 2 = Drain (also the metal tab), pin 3 = Source.
 - Bench 5V supply for the inverter, sharing a common ground with the board.
 - Wiring for one channel per `docs/hardware.md`: GPIO3 to the gate through the
   100 ohm resistor, 10k gate to ground, MOSFET source to ground, drain to the

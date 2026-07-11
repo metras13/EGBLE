@@ -23,16 +23,25 @@
                                               inverter V-  --+
                                                              |
                                                           [DRAIN]
-   ESP32 GPIO --[ 100 ohm ]--+------------[GATE]  N-ch MOSFET (AO3400 class)
+   ESP32 GPIO --[ 100 ohm ]--+------------[GATE]  N-ch MOSFET (logic-level:
+                             |                    FQP30N06L or AO3400 class)
                              |                  [SOURCE]
                           [ 10k ]                   |
                              |                      |
    system ground -----------+----------------------+---------> 5V supply (-)
 ```
 
-- MOSFET: logic-level N-channel, AO3400 class or equivalent. Vgs(th) low enough
-  for full enhancement at a 3.3V gate, low Rds(on), continuous drain current
-  rating comfortably above a single inverter's draw.
+- MOSFET: logic-level N-channel. Vgs(th) low enough for full enhancement at a
+  3.3V gate, low Rds(on), continuous drain current rating comfortably above a
+  single inverter's draw. Two verified options:
+  - AO3400 class (SOT-23) for a compact / eventual PCB build.
+  - FQP30N06L (TO-220) for the bench build. Logic-level ("L" suffix), 60V/32A,
+    which is hugely overrated for an EL inverter's sub-amp draw, so it runs cold
+    with no heatsink. The through-hole package is easier to hand-wire than the
+    SOT-23. Pinout facing the printed side, legs down, left to right:
+    pin 1 = Gate, pin 2 = Drain, pin 3 = Source. The metal tab is Drain, so keep
+    it from touching ground or a neighbor. Always confirm the pinout against the
+    datasheet of whatever part you actually use.
 - Gate resistor: about 100 ohm. Keeps switching crisp up to 10 kHz without
   excessive ringing.
 - Gate pulldown: 10k gate to ground. Holds the channel OFF during ESP32 boot,
@@ -95,9 +104,9 @@ Fill in the measured single-inverter current before ordering the supply.
 | Qty | Part                        | Spec                                  |
 |-----|-----------------------------|---------------------------------------|
 | 1   | ESP32-C3 board              | C3-Zero or C3 SuperMini, USB-C        |
-| 6   | N-channel MOSFET            | AO3400 class, logic-level             |
+| 6   | N-channel MOSFET            | logic-level: FQP30N06L (TO-220, bench) or AO3400 class (SOT-23) |
 | 6   | Gate resistor               | 100 ohm, 1/8 W                        |
-| 6   | Gate pulldown resistor      | 10k, 1/8 W                            |
+| 6   | Gate pulldown resistor      | 10k to 47k (12.5k is fine), any wattage |
 | 1   | 5V DC supply                | rated for measured_current x 6 + 20%  |
 | 6   | EL inverter                 | target product, 5V input              |
 | 0-6 | Snubber/flyback diode       | only if bench testing shows spikes    |
