@@ -17,11 +17,14 @@ Install through the Arduino Library Manager:
 
 | Library         | Tested version |
 |-----------------|----------------|
-| NimBLE-Arduino  | 1.4.x          |
+| NimBLE-Arduino  | 2.x            |
 | ArduinoJson     | 7.x            |
 
 NimBLE is used instead of the stock BLE stack because it is far smaller, which
-matters on the C3.
+matters on the C3. NimBLE-Arduino 2.x is required: it is the line that matches
+esp32 core 3.x. Pairing an older 1.4.x NimBLE with a 3.x core links but crashes
+at boot with a controller/host version mismatch (a "fadebead VERSION" mismatch
+followed by an instruction access fault panic loop).
 
 ## Build and flash
 

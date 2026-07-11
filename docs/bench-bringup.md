@@ -28,7 +28,7 @@ channel fades on to off over six seconds and repeats. No BLE, no app.
 
 1. Install the Arduino toolchain (one time):
    - esp32 core 3.x (Boards Manager) and select "ESP32C3 Dev Module".
-   - Libraries: NimBLE-Arduino 1.4.x and ArduinoJson 7.x (see docs/firmware.md).
+   - Libraries: NimBLE-Arduino 2.x and ArduinoJson 7.x (see docs/firmware.md).
    - Enable "USB CDC On Boot" so Serial runs over USB-C.
 2. Open `firmware/egble-controller/egble-controller.ino`, pick the board and
    port, and upload. Or with arduino-cli:
@@ -93,9 +93,10 @@ banner shows "reconnecting" if BLE drops, and the board keeps fading on its own.
   they are declared in `app.json`.
 - If the scan finds nothing, confirm Stage 1 left the board powered and that
   the serial log printed `[ble] advertising as "EGBLE-Controller"`.
-- NimBLE-Arduino major version matters. The firmware is written for 1.4.x. If
-  the library manager installed 2.x, either pin 1.4.x or expect the BLE
-  callback signatures to need updating.
+- NimBLE-Arduino major version matters. The firmware needs 2.x (matches esp32
+  core 3.x). If an older 1.4.x is installed, the board flashes fine but crash
+  loops at boot with a "fadebead VERSION" mismatch and an instruction access
+  fault. Fix: update NimBLE-Arduino to 2.x in the Library Manager and reflash.
 
 ## What to report back
 

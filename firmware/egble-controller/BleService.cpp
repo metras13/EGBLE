@@ -12,25 +12,29 @@ static NimBLECharacteristic* g_stateChar = nullptr;
 static NimBLECharacteristic* g_sceneChar = nullptr;
 static BleService*           g_self      = nullptr;
 
+// Callback signatures follow NimBLE-Arduino 2.x (the version that pairs with
+// ESP32 Arduino core 3.x). The extra NimBLEConnInfo / reason parameters are what
+// distinguish the 2.x API from 1.4.x.
+
 // Connection bookkeeping so the device keeps advertising after a disconnect.
 class ServerCallbacks : public NimBLEServerCallbacks {
-  void onConnect(NimBLEServer* server) override {
+  void onConnect(NimBLEServer* server, NimBLEConnInfo& connInfo) override {
     Serial.println("[ble] connected");
   }
-  void onDisconnect(NimBLEServer* server) override {
+  void onDisconnect(NimBLEServer* server, NimBLEConnInfo& connInfo, int reason) override {
     Serial.println("[ble] disconnected, re-advertising");
     NimBLEDevice::startAdvertising();
   }
 };
 
 class CommandCallbacks : public NimBLECharacteristicCallbacks {
-  void onWrite(NimBLECharacteristic* c) override {
+  void onWrite(NimBLECharacteristic* c, NimBLEConnInfo& connInfo) override {
     if (g_self) g_self->onCommandWrite(c->getValue().c_str());
   }
 };
 
 class SceneCallbacks : public NimBLECharacteristicCallbacks {
-  void onWrite(NimBLECharacteristic* c) override {
+  void onWrite(NimBLECharacteristic* c, NimBLEConnInfo& connInfo) override {
     if (g_self) g_self->onSceneWrite(c->getValue().c_str());
   }
 };
@@ -41,7 +45,8 @@ void BleService::begin(const char* deviceName, PatternEngine& eng, SceneManager&
   g_self  = this;
 
   NimBLEDevice::init(deviceName);
-  NimBLEDevice::setPower(ESP_PWR_LVL_P9);
+  // Leave TX power at the default. If a marginal SuperMini regulator browns out
+  // under radio current, lower it with NimBLEDevice::setPower(3) (2.x takes dBm).
 
   g_server = NimBLEDevice::createServer();
   g_server->setCallbacks(new ServerCallbacks());
@@ -69,7 +74,7 @@ void BleService::begin(const char* deviceName, PatternEngine& eng, SceneManager&
 
   NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
   adv->addServiceUUID(EGBLE_SERVICE_UUID);
-  adv->setScanResponse(true);
+  adv->enableScanResponse(true);   // 2.x name for setScanResponse
   adv->start();
 
   Serial.printf("[ble] advertising as \"%s\"\n", deviceName);
