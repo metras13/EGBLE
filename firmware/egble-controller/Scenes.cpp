@@ -176,10 +176,11 @@ Scene allOff() {
   return s;
 }
 
-// Fade 6s: the first bench test. Every channel snaps to full, fades to off over
-// six seconds through the gamma ramp, then repeats. Confirms the whole path
-// (PWM, gamma, MOSFET, inverter) with no phone attached. To make it a symmetric
-// breathe instead, split the time into fadeInMs and fadeOutMs.
+// Fade 6s: the bench test scene. Every channel breathes symmetrically through
+// the gamma ramp, three seconds up and three seconds down, then repeats (a six
+// second cycle). Confirms the whole path (PWM, gamma, MOSFET, inverter) in both
+// fade directions with no phone attached. For a snap-on then fade-out instead,
+// set fadeInMs = 0 and fadeOutMs = 6000.
 Scene fade6s() {
   Scene s;
   strncpy(s.name, "Fade 6s", sizeof(s.name) - 1);
@@ -187,9 +188,9 @@ Scene fade6s() {
     s.ch[i].enabled = true;
     s.ch[i].cfg.type      = PAT_FADE_PULSE;
     s.ch[i].cfg.bri       = 255;
-    s.ch[i].cfg.fadeInMs  = 0;      // snap on
+    s.ch[i].cfg.fadeInMs  = 3000;   // three second fade up
     s.ch[i].cfg.holdMs    = 0;
-    s.ch[i].cfg.fadeOutMs = 6000;   // six second fade to off
+    s.ch[i].cfg.fadeOutMs = 3000;   // three second fade down
     s.ch[i].cfg.gapMs     = 0;
   }
   return s;

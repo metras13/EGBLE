@@ -1,7 +1,8 @@
 # Morning bench bring-up
 
-Goal for the first session: a single EL inverter fading on to off over six
-seconds on the bench, driven by the ESP32-C3 dev board. Do it in two stages.
+Goal for the first session: a single EL inverter breathing up and down over a
+six second cycle on the bench, driven by the ESP32-C3 dev board. Do it in two
+stages.
 Stage 1 needs no phone and proves the hardware. Stage 2 brings up the app.
 
 ## Before you start
@@ -24,7 +25,7 @@ Reminder: the board never carries inverter current. It only drives the gate.
 ## Stage 1: fade with no app (most reliable first test)
 
 The firmware boots straight into the "Fade 6s" scene, so once flashed the wired
-channel fades on to off over six seconds and repeats. No BLE, no app.
+channel breathes up and down over a six second cycle and repeats. No BLE, no app.
 
 1. Install the Arduino toolchain (one time):
    - esp32 core 3.x (Boards Manager) and select "ESP32C3 Dev Module".
@@ -39,8 +40,8 @@ channel fades on to off over six seconds and repeats. No BLE, no app.
    ESP32-C3 SuperMini note: if the port will not take an upload, force download
    mode by holding BOOT, tapping RESET, releasing RESET, then releasing BOOT,
    and upload again. Some units need this on every connect.
-3. Power the bench 5V. Channel 0 (GPIO3) should snap to full and fade to off
-   over six seconds, then repeat.
+3. Power the bench 5V. Channel 0 (GPIO3) should fade up over three seconds and
+   back down over three, then repeat.
 
 If it works, you have proven PWM, gamma, the MOSFET, and the inverter together.
 
