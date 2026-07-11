@@ -14,6 +14,7 @@
 #include "PatternEngine.h"
 #include "config.h"
 #include <stdint.h>
+#include <stddef.h>   // size_t (used by slotName below)
 
 struct ChannelSnapshot {
   bool          enabled = true;
