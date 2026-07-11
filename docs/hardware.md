@@ -60,6 +60,30 @@
 - Power the ESP32 from its own USB-C or a regulated 5V tap. Keep its supply
   clean and separate from the noisy inverter rail where possible.
 
+### Powering the ESP32
+
+The ESP32 always has its own supply, separate from the inverter current path.
+It never carries inverter current; it only sources the tiny MOSFET gate signal.
+Whatever powers it, its ground must be common with the inverter supply ground,
+because the gate signal is referenced to ESP32 ground.
+
+- Bench bring-up: power the ESP32 from the computer USB-C (this also flashes it
+  and carries the serial console), and power the inverters from the separate
+  bench 5V supply. Tie the two grounds together. Two supplies, one common
+  ground. This is the setup in the wiring diagram.
+- Finished build, option A (cleanest): give the ESP32 its own USB-C source, a
+  phone charger or power bank, still grounded to the inverter supply. Keeps its
+  rail away from inverter noise.
+- Finished build, option B (simplest): feed the same 5V inverter rail into the
+  SuperMini 5V pin, which runs its onboard 3.3V regulator. One supply powers
+  everything and the ground is common by default.
+
+Gotcha: use only one 5V source at a time. On most C3 SuperMini boards the USB 5V
+and the 5V pin are tied together with no isolation diode, so powering the 5V pin
+from the rail while USB is also plugged in makes two supplies fight. During
+flashing and bench testing the source is USB; if you later power from the shared
+rail, unplug USB first.
+
 ## GPIO assignment (ESP32-C3)
 
 The C3 exposes GPIO 0 through 21, but several are unusable or risky:
