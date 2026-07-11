@@ -73,8 +73,11 @@ void BleService::begin(const char* deviceName, PatternEngine& eng, SceneManager&
   notifyState();
 
   NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
+  adv->setName(deviceName);        // 2.x does not auto-add the name; set it so
+                                   // the device shows as EGBLE-Controller
   adv->addServiceUUID(EGBLE_SERVICE_UUID);
-  adv->enableScanResponse(true);   // 2.x name for setScanResponse
+  adv->enableScanResponse(true);   // name goes in the scan response, since the
+                                   // 128-bit service UUID fills the adv packet
   adv->start();
 
   Serial.printf("[ble] advertising as \"%s\"\n", deviceName);
