@@ -13,7 +13,7 @@
 // a separate supply sharing a common ground. See docs/hardware.md.
 //
 // Libraries required (install via Arduino Library Manager):
-//   - NimBLE-Arduino  (tested with 1.4.x)
+//   - NimBLE-Arduino  (2.x, required for esp32 core 3.x)
 //   - ArduinoJson     (tested with 7.x)
 // Board: "ESP32C3 Dev Module" from the esp32 core 3.x. Enable USB CDC On Boot
 // so Serial goes over the native USB port.
