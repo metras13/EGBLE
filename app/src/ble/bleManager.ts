@@ -90,6 +90,7 @@ class EgbleBle {
 
       this.subscribeState(device);
       await this.readScenes();
+      await this.readState();   // reads carry the full payload; notify may truncate
       this.cb?.onStatus('connected', device.name ?? undefined);
     } catch (e: any) {
       this.cb?.onStatus('error', e?.message ?? 'connect failed');
@@ -125,11 +126,31 @@ class EgbleBle {
   /** Write a JSON command to the command characteristic. */
   async sendCommand(json: string): Promise<void> {
     if (!this.device) return;
-    await this.device.writeCharacteristicWithoutResponseForService(
+    // Write WITH response so the firmware has applied the command (and updated
+    // its state characteristic) before we read state back. Without-response
+    // writes could race the read.
+    await this.device.writeCharacteristicWithResponseForService(
       EGBLE_SERVICE_UUID,
       EGBLE_CMD_UUID,
       encodeBase64(json),
     );
+    // Pull the authoritative state via a read (not notify): the full per-channel
+    // JSON exceeds one notification at the negotiated MTU, so notifications get
+    // truncated. Reads return the complete value.
+    await this.readState();
+  }
+
+  /** Read the full per-channel state from the state characteristic. */
+  async readState(): Promise<void> {
+    if (!this.device) return;
+    const char = await this.device.readCharacteristicForService(
+      EGBLE_SERVICE_UUID,
+      EGBLE_STATE_UUID,
+    );
+    if (char?.value) {
+      const state = parseState(decodeBase64(char.value));
+      if (state) this.cb?.onState(state);
+    }
   }
 
   /** Write a JSON scene action to the scene characteristic. */
