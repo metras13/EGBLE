@@ -25,6 +25,7 @@ export const Colors = {
     SOS: '#e05050',
     TURN_SIGNAL: '#f59e0b',
     SEQUENCE: '#e8458b',
+    FLAME: '#ff6b35',
   },
 } as const;
 

@@ -141,6 +141,12 @@ about 40 mA at peak brightness, and essentially 0 mA when off (measured on the
 bench during Phase 1). Six channels at once draw roughly 240 mA, so a 5V 1A
 supply has comfortable headroom.
 
+Measured oscillator drive thresholds (of 1023, at 7 kHz PWM): the inverter
+starts oscillating at about duty 187 and sustains down to about 145. That start
+> sustain hysteresis is why an uncorrected fade-in stays dark then pops on. The
+firmware compensates with `OUTPUT_FLOOR_DUTY` in `config.h` (default 200), which
+remaps any lit level above the start threshold. Retune it per inverter type.
+
 ## Build target
 
 v1 is a stacked protoboard or hand-wired build, NOT a fabricated PCB. Prove the

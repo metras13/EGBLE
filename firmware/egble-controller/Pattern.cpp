@@ -3,7 +3,7 @@
 #include <strings.h>
 
 static const char* const NAMES[PAT_COUNT] = {
-  "OFF", "SOLID", "BLINK", "FADE_PULSE", "SOS", "TURN_SIGNAL", "SEQUENCE",
+  "OFF", "SOLID", "BLINK", "FADE_PULSE", "SOS", "TURN_SIGNAL", "SEQUENCE", "FLAME",
 };
 
 const char* patternName(PatternType t) {

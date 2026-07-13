@@ -106,3 +106,42 @@ banner shows "reconnecting" if BLE drops, and the board keeps fading on its own.
 - Did Stage 2 connect and recall the fade?
 
 Any of these tells me the next change to make.
+
+## Stage 3: all six channels (Phase 3)
+
+The firmware already supports six channels, grouping, and the SEQUENCE chase, so
+this is pure wiring: repeat the proven single-channel block five more times on
+the shared rails. See `docs/wiring-6-channel.svg` for the bus diagram.
+
+Checklist:
+
+1. Build channels 1 to 5 identically to channel 0, on these pins:
+
+   | Channel | GPIO | Channel | GPIO |
+   |---------|------|---------|------|
+   | 0       | 3    | 3       | 6    |
+   | 1       | 4    | 4       | 7    |
+   | 2       | 5    | 5       | 10   |
+
+   Each: GPIO -> 100 ohm -> gate, 10k gate to ground, drain to that inverter's
+   ground return, source to the common ground rail.
+2. One shared 5V supply feeds all six inverter V+ pins. Six inverters at about
+   40 mA each is roughly 240 mA, so a 5V 1A supply has plenty of headroom. Keep
+   the single common ground across the supply, all MOSFET sources, the gate
+   pulldowns, and the ESP32.
+3. Power up. The boot scene (Fade 6s) now breathes all wired channels together.
+4. Test grouping and the chase from the app or nRF Connect:
+   - Assign a few channels to a group, then send a SEQUENCE to that group and
+     watch it chase in channel order.
+   - Example command to the Command characteristic:
+     `{"cmd":"pattern","grp":1,"type":"SEQUENCE","stepMs":220,"overlapMs":90}`
+     (first put channels in group 1 with `{"cmd":"group","ch":N,"gid":1}`).
+5. Watch for EMI or brownout with all six switching at once. If the ESP32
+   resets under load, lower BLE TX power or add a bulk capacitor on the 5V rail,
+   and confirm the inverter rail is separate from the ESP32 supply.
+
+### What to report back for Phase 3
+
+- Do all six channels light and dim smoothly together?
+- Does the SEQUENCE chase run cleanly across a group?
+- Any flicker, whine, EMI, or resets that appear only with all six running?

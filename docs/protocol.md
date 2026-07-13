@@ -55,6 +55,7 @@ Pattern types and the fields they use:
 | `SOS`         | `bri`, `onMs` (Morse unit)                     |
 | `TURN_SIGNAL` | `bri`, `onMs`, `offMs`                          |
 | `SEQUENCE`    | `bri`, `stepMs`, `overlapMs` (per group)        |
+| `FLAME`       | `bri`, `onMs` (flicker speed, smaller is livelier) |
 
 `SEQUENCE` chases across all enabled channels that share the same group and are
 set to `SEQUENCE`, in ascending channel order.

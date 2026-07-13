@@ -19,6 +19,12 @@ void Channel::setBrightness(uint8_t level) {
   // Apply per-channel calibration scale.
   duty = (duty * scalePct_) / 100u;
   if (duty > PWM_MAX_DUTY) duty = PWM_MAX_DUTY;
+  // Compress any lit output into [OUTPUT_FLOOR_DUTY, PWM_MAX_DUTY] so the dimmest
+  // visible drive clears the inverter's oscillator start threshold and fades
+  // ramp smoothly rather than popping on. Level 0 stays fully off.
+  if (level > 0 && OUTPUT_FLOOR_DUTY > 0) {
+    duty = OUTPUT_FLOOR_DUTY + duty * (PWM_MAX_DUTY - OUTPUT_FLOOR_DUTY) / PWM_MAX_DUTY;
+  }
   ledcWrite(pin_, duty);
 }
 

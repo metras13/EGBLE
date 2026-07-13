@@ -17,6 +17,7 @@ enum PatternType : uint8_t {
   PAT_SOS        = 4,  // Morse SOS, unit = onMs
   PAT_TURN_SIGNAL= 5,  // fast blink for a triggered turn indicator
   PAT_SEQUENCE   = 6,  // group chase: members light in channel order
+  PAT_FLAME      = 7,  // candle flicker; onMs sets flicker speed, bri the cap
   PAT_COUNT
 };
 

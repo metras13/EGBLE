@@ -27,6 +27,7 @@ import {
   cmdSceneSave,
   cmdSceneLoad,
   cmdSceneDelete,
+  cmdPatternAll,
   TriggerAction,
   ChannelState,
   DeviceState,
@@ -50,6 +51,11 @@ interface AppState {
   channels: ChannelState[];
   scenes: SceneList;
 
+  // User preferences (persisted)
+  masterBrightness: number;   // 0..255, the orb dim level
+  channelCount: number;       // how many channels this build uses (1..6)
+  onboarded: boolean;         // has the splash walkthrough been seen
+
   // Actions - lifecycle
   initBle: () => void;
   scan: () => void;
@@ -57,9 +63,15 @@ interface AppState {
   connect: (id: string) => void;
   disconnect: () => void;
 
+  // Actions - preferences
+  setMasterBrightness: (v: number) => void;
+  setChannelCount: (n: number) => void;
+  setOnboarded: (v: boolean) => void;
+
   // Actions - channel control
   setPattern: (ch: number, cfg: PatternConfig) => void;
   setGroupPattern: (gid: number, cfg: PatternConfig) => void;
+  setAllPattern: (cfg: PatternConfig) => void;
   toggleEnabled: (ch: number, on: boolean) => void;
   assignGroup: (ch: number, gid: number) => void;
   calibrate: (ch: number, pct: number) => void;
@@ -83,6 +95,19 @@ export const useAppStore = create<AppState>()(
       lastDeviceId: null,
       channels: [],
       scenes: EMPTY_SCENES,
+
+      masterBrightness: 200,
+      channelCount: 6,
+      onboarded: false,
+
+      setMasterBrightness: (v) =>
+        set({ masterBrightness: Math.max(0, Math.min(255, Math.round(v))) }),
+      setChannelCount: (n) => set({ channelCount: Math.max(1, Math.min(6, Math.round(n))) }),
+      setOnboarded: (v) => set({ onboarded: v }),
+
+      setAllPattern: (cfg) => {
+        ble.sendCommand(cmdPatternAll(cfg));
+      },
 
       initBle: () => {
         ble.init({
@@ -147,8 +172,14 @@ export const useAppStore = create<AppState>()(
       name: 'egble-app-storage',
       storage: createJSONStorage(() => AsyncStorage),
       version: 1,
-      // Only the reconnect target survives restarts. Everything else is live.
-      partialize: (state) => ({ lastDeviceId: state.lastDeviceId }),
+      // Reconnect target and user preferences survive restarts. Live controller
+      // state (channels, scenes, connection) is not persisted.
+      partialize: (state) => ({
+        lastDeviceId: state.lastDeviceId,
+        masterBrightness: state.masterBrightness,
+        channelCount: state.channelCount,
+        onboarded: state.onboarded,
+      }),
     },
   ),
 );

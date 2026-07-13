@@ -34,6 +34,10 @@ export default function TabLayout() {
     >
       <Tabs.Screen
         name="index"
+        options={{ title: 'Home', tabBarIcon: ({ focused }) => <TabIcon emoji="⬤" focused={focused} /> }}
+      />
+      <Tabs.Screen
+        name="channels"
         options={{ title: 'Channels', tabBarIcon: ({ focused }) => <TabIcon emoji="🎛" focused={focused} /> }}
       />
       <Tabs.Screen
