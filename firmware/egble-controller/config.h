@@ -41,6 +41,16 @@ static const uint32_t PWM_FREQ_HZ         = 7000;
 // perceptual levels 0..255; the gamma table expands them to PWM duty.
 static const uint16_t BRIGHTNESS_MAX = 255;
 
+// EL inverter oscillator threshold. These inverters need more drive to START
+// oscillating than to keep going (hysteresis). Measured on the bench: the
+// oscillator starts at about duty 187 and sustains down to about 145 (of 1023).
+// Below the start threshold a fade-in stays dark, then pops on. To fix that,
+// any lit level is remapped into [OUTPUT_FLOOR_DUTY, PWM_MAX_DUTY] so the
+// dimmest visible drive is already above the start threshold and fades ramp
+// smoothly. Tune this per inverter type (a bit above the measured start value).
+// Set to 0 to disable the floor (raw gamma output, for LEDs or other loads).
+static const uint32_t OUTPUT_FLOOR_DUTY = 200;
+
 // Pattern engine tick period. Fades and blinks are recomputed this often.
 // 10 ms (100 Hz) is smooth for the eye and cheap for the C3.
 static const uint32_t TICK_INTERVAL_MS = 10;
