@@ -49,7 +49,10 @@ static const uint16_t BRIGHTNESS_MAX = 255;
 // dimmest visible drive is already above the start threshold and fades ramp
 // smoothly. Tune this per inverter type (a bit above the measured start value).
 // Set to 0 to disable the floor (raw gamma output, for LEDs or other loads).
-static const uint32_t OUTPUT_FLOOR_DUTY = 200;
+// 195 sits just above the measured 187 start threshold: dim enough to keep a
+// fade-in gentle, high enough to start reliably. Raise it if a fade still pops
+// on, lower it (toward 190) for a dimmer minimum.
+static const uint32_t OUTPUT_FLOOR_DUTY = 195;
 
 // Pattern engine tick period. Fades and blinks are recomputed this often.
 // 10 ms (100 Hz) is smooth for the eye and cheap for the C3.
