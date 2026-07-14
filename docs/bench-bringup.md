@@ -124,7 +124,13 @@ Checklist:
    | 2       | 5    | 5       | 10   |
 
    Each: GPIO -> 100 ohm -> gate, 10k gate to ground, drain to that inverter's
-   ground return, source to the common ground rail.
+   V- (ground return), source to the common ground rail.
+
+   Critical: only the MOSFET sources, the supply minus, and the ESP32 GND join
+   the common ground. Each inverter's V- goes to its OWN MOSFET drain, which is a
+   separate node per channel. Do NOT land inverter V- on the common ground rail:
+   that bypasses the MOSFET and leaves the channel stuck on, always, regardless
+   of the gate. The six drains never connect to each other or to ground.
 2. One shared 5V supply feeds all six inverter V+ pins. Six inverters at about
    40 mA each is roughly 240 mA, so a 5V 1A supply has plenty of headroom. Keep
    the single common ground across the supply, all MOSFET sources, the gate
