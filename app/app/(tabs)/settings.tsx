@@ -11,6 +11,7 @@ import {
   Text,
   ScrollView,
   Pressable,
+  Switch,
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,6 +29,9 @@ export default function Settings() {
   const connect = useAppStore((s) => s.connect);
   const disconnect = useAppStore((s) => s.disconnect);
   const calibrate = useAppStore((s) => s.calibrate);
+  const demoMode = useAppStore((s) => s.demoMode);
+  const enableDemo = useAppStore((s) => s.enableDemo);
+  const disableDemo = useAppStore((s) => s.disableDemo);
 
   const connected = status === 'connected';
   const scanning = status === 'scanning';
@@ -62,8 +66,26 @@ export default function Settings() {
               </Pressable>
             ))}
           {!connected && scanning && devices.length === 0 ? (
-            <Text style={styles.hint}>Looking for nearby EGBLE controllers...</Text>
+            <Text style={styles.hint}>Looking for nearby Ware controllers...</Text>
           ) : null}
+        </Section>
+
+        <Section title="Demo mode">
+          <View style={styles.demoRow}>
+            <View style={{ flex: 1, paddingRight: Spacing.md }}>
+              <Text style={styles.demoTitle}>Simulated controller</Text>
+              <Text style={styles.hint}>
+                Explore every screen with a virtual six-channel controller, no
+                hardware required.
+              </Text>
+            </View>
+            <Switch
+              value={demoMode}
+              onValueChange={(v) => (v ? enableDemo() : disableDemo())}
+              trackColor={{ false: Colors.bg4, true: Colors.accent + '88' }}
+              thumbColor={demoMode ? Colors.accent : Colors.muted}
+            />
+          </View>
         </Section>
 
         {connected && channels.length > 0 ? (
@@ -90,7 +112,7 @@ export default function Settings() {
 
         <Section title="About">
           <Text style={styles.hint}>
-            EGBLE controller. Patterns run on the device and keep going if this
+            Ware controller. Patterns run on the device and keep going if this
             app disconnects. Firmware version shows once connected.
           </Text>
         </Section>
@@ -127,4 +149,7 @@ const styles = StyleSheet.create({
   deviceName: { color: Colors.text, fontSize: 15 },
   deviceConnect: { color: Colors.accent, fontWeight: '600' },
   hint: { color: Colors.muted, fontSize: 13, lineHeight: 19 },
+  demoRow: { flexDirection: 'row', alignItems: 'center' },
+  demoTitle: { color: Colors.text, fontSize: 15, fontWeight: '600', marginBottom: 2 },
 });
+
