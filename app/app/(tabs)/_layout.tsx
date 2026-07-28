@@ -1,6 +1,7 @@
-import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
+import { Tabs, Redirect } from 'expo-router';
+import { Text, View } from 'react-native';
 import { Colors } from '../../src/constants/colors';
+import { useAppStore } from '../../src/store/appStore';
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
   return (
@@ -11,6 +12,14 @@ function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
 }
 
 export default function TabLayout() {
+  const hasHydrated = useAppStore((s) => s.hasHydrated);
+  const onboarded = useAppStore((s) => s.onboarded);
+
+  // Wait for persisted state before deciding, so returning users do not flash
+  // the walkthrough. First-timers land on onboarding.
+  if (!hasHydrated) return <View style={{ flex: 1, backgroundColor: Colors.bg }} />;
+  if (!onboarded) return <Redirect href="/onboarding" />;
+
   return (
     <Tabs
       screenOptions={{

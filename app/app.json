@@ -2,21 +2,28 @@
   "expo": {
     "name": "Ware",
     "slug": "egble",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "egble",
+    "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.ellumiglow.egble",
+      "buildNumber": "1",
       "infoPlist": {
-        "NSBluetoothAlwaysUsageDescription": "EGBLE uses Bluetooth to control your EL inverter controller.",
-        "NSBluetoothPeripheralUsageDescription": "EGBLE uses Bluetooth to control your EL inverter controller.",
+        "NSBluetoothAlwaysUsageDescription": "Ware uses Bluetooth to connect to and control your Ware light controller.",
+        "NSBluetoothPeripheralUsageDescription": "Ware uses Bluetooth to connect to and control your Ware light controller.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.ellumiglow.egble",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#08090f"
+      },
       "permissions": [
         "android.permission.BLUETOOTH_SCAN",
         "android.permission.BLUETOOTH_CONNECT",
@@ -26,11 +33,19 @@
     "plugins": [
       "expo-router",
       [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#08090f",
+          "image": "./assets/splash.png",
+          "imageWidth": 220
+        }
+      ],
+      [
         "react-native-ble-plx",
         {
           "isBackgroundEnabled": false,
           "modes": ["central"],
-          "bluetoothAlwaysPermission": "EGBLE uses Bluetooth to control your EL inverter controller."
+          "bluetoothAlwaysPermission": "Ware uses Bluetooth to connect to and control your Ware light controller."
         }
       ]
     ]

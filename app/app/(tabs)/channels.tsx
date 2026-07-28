@@ -127,7 +127,7 @@ function ChannelCard({ index, state }: { index: number; state: ChannelState }) {
               <SliderRow
                 key={f}
                 label={FIELD_LABELS[f] ?? f}
-                value={draft[f]}
+                value={draft[f] as number}
                 min={range[0]}
                 max={range[1]}
                 step={range[2]}
