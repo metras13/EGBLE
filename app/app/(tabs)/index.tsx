@@ -2,9 +2,15 @@
  * Ware - Home
  *
  * The orb is the main control: tap to turn the light on or off, drag the
- * brightness slider to dim. Presets (Steady, Flame, Strobe, Fade) each apply a
- * pattern to every channel, with a speed slider for the active one. State is
- * read back from the controller's notifications so the orb reflects reality.
+ * brightness slider to dim. Above it sit the wearer-facing controls: Activities
+ * (one-tap modes tuned for a run, dog walk, bike, or night traffic), a Power
+ * mode that trades brightness for runtime (and nudges you to Endurance when the
+ * battery runs low), and Safety triggers (SOS and turn signals).
+ *
+ * In Wear mode the screen shows only those worn-use controls. In Store mode it
+ * also exposes the raw pattern Presets and a Speed slider for a show floor.
+ * State is read back from the controller's notifications so the orb reflects
+ * reality.
  */
 
 import { useState } from 'react';
@@ -13,9 +19,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
 import { useAppStore } from '../../src/store/appStore';
 import { ConnectionBanner } from '../../src/components/ConnectionBanner';
+import { BatteryIndicator, LowBatteryBanner } from '../../src/components/BatteryIndicator';
 import { Colors, Radius, Spacing } from '../../src/constants/colors';
 import { APP_NAME, APP_TAGLINE } from '../../src/constants/brand';
 import { DEFAULT_PATTERN, PatternConfig, PatternType } from '../../src/constants/patterns';
+import { batteryTier, TriggerAction } from '../../src/ble/protocol';
+import {
+  ACTIVITIES,
+  ActivityKey,
+  POWER_MODES,
+  effectiveBrightness,
+} from '../../src/constants/activities';
 
 type Preset = 'steady' | 'flame' | 'strobe' | 'fade';
 
@@ -26,12 +40,25 @@ const PRESETS: { key: Preset; label: string; type: PatternType; color: string }[
   { key: 'fade', label: 'Fade', type: 'FADE_PULSE', color: Colors.pattern.FADE_PULSE },
 ];
 
+const SAFETY: { action: TriggerAction; label: string; color: string }[] = [
+  { action: 'sos', label: 'SOS', color: Colors.pattern.SOS },
+  { action: 'left', label: '◀ Left', color: Colors.pattern.TURN_SIGNAL },
+  { action: 'right', label: 'Right ▶', color: Colors.pattern.TURN_SIGNAL },
+  { action: 'stop', label: 'Off', color: Colors.muted },
+];
+
+// What the orb last turned on, so tapping it (or changing power/brightness)
+// re-applies the same look at the new level.
+type Source =
+  | { kind: 'preset'; preset: Preset }
+  | { kind: 'activity'; key: ActivityKey };
+
 // Map a 0..100 speed slider to a preset's timing. Higher speed = livelier.
 function lerp(a: number, b: number, t: number) {
   return Math.round(a + (b - a) * (t / 100));
 }
 
-function buildConfig(preset: Preset, bri: number, speed: number): PatternConfig {
+function buildPreset(preset: Preset, bri: number, speed: number): PatternConfig {
   switch (preset) {
     case 'flame':
       return { ...DEFAULT_PATTERN, type: 'FLAME', bri, onMs: lerp(180, 30, speed) };
@@ -52,49 +79,82 @@ function buildConfig(preset: Preset, bri: number, speed: number): PatternConfig 
 export default function Home() {
   const channels = useAppStore((s) => s.channels);
   const status = useAppStore((s) => s.status);
+  const battery = useAppStore((s) => s.battery);
   const brightness = useAppStore((s) => s.masterBrightness);
   const setBrightness = useAppStore((s) => s.setMasterBrightness);
   const setAllPattern = useAppStore((s) => s.setAllPattern);
+  const trigger = useAppStore((s) => s.trigger);
+  const wearMode = useAppStore((s) => s.wearMode);
+  const powerMode = useAppStore((s) => s.powerMode);
+  const setPowerMode = useAppStore((s) => s.setPowerMode);
 
-  const [preset, setPreset] = useState<Preset>('steady');
+  const [source, setSource] = useState<Source>({ kind: 'preset', preset: 'steady' });
   const [speed, setSpeed] = useState(50);
 
   const connected = status === 'connected' || status === 'reconnecting';
   const isOn = channels.length > 0 && channels.some((c) => c.pattern !== 'OFF');
-  const active = PRESETS.find((p) => p.key === preset)!;
-  const orbColor = active.color;
 
-  const apply = (p: Preset, bri: number, spd: number) =>
-    setAllPattern(buildConfig(p, bri, spd));
+  // Color the orb by whatever is active.
+  const orbColor =
+    source.kind === 'activity'
+      ? ACTIVITIES.find((a) => a.key === source.key)!.color
+      : PRESETS.find((p) => p.key === source.preset)!.color;
+
+  // Build the pattern for the current source at a given brightness / speed.
+  const buildFor = (src: Source, bri: number, spd: number): PatternConfig => {
+    const eff = effectiveBrightness(bri, powerMode);
+    if (src.kind === 'activity') return ACTIVITIES.find((a) => a.key === src.key)!.build(eff);
+    return buildPreset(src.preset, eff, spd);
+  };
+
+  const applySource = (src: Source, bri = brightness, spd = speed) => {
+    setSource(src);
+    setAllPattern(buildFor(src, bri, spd));
+  };
 
   const toggleOrb = () => {
     if (isOn) setAllPattern({ ...DEFAULT_PATTERN, type: 'OFF' });
-    else apply(preset, brightness, speed);
-  };
-
-  const pickPreset = (p: Preset) => {
-    setPreset(p);
-    apply(p, brightness, speed); // selecting a preset turns the light on with it
+    else applySource(source);
   };
 
   const onBrightness = (v: number) => {
     setBrightness(v);
-    if (isOn) apply(preset, v, speed);
+    if (isOn) setAllPattern(buildFor(source, v, speed));
   };
 
   const onSpeed = (v: number) => {
     setSpeed(v);
-    if (isOn && preset !== 'steady') apply(preset, brightness, v);
+    if (isOn && source.kind === 'preset' && source.preset !== 'steady') {
+      setAllPattern(buildFor(source, brightness, v));
+    }
+  };
+
+  const onPowerMode = (m: typeof powerMode) => {
+    setPowerMode(m);
+    if (isOn) setAllPattern(buildFor(source, brightness, speed));
+  };
+
+  const onSafety = (action: TriggerAction) => {
+    trigger(action);
   };
 
   const briPct = Math.round((brightness / 255) * 100);
+  const showSaverNudge =
+    battery.present && !battery.charging && batteryTier(battery.pct) !== 'good' && powerMode !== 'endurance';
+  const showPresets = !wearMode; // raw pattern editor + speed live in Store mode only
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.brand}>{APP_NAME}</Text>
-        <Text style={styles.tagline}>{APP_TAGLINE}</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <Text style={styles.brand}>{APP_NAME}</Text>
+            <Text style={styles.tagline}>{wearMode ? 'Wear mode' : APP_TAGLINE}</Text>
+          </View>
+          <BatteryIndicator />
+        </View>
         <ConnectionBanner />
+        <LowBatteryBanner />
 
         {/* Orb */}
         <View style={styles.orbWrap}>
@@ -143,50 +203,114 @@ export default function Home() {
           />
         </View>
 
-        {/* Presets */}
-        <Text style={styles.section}>Presets</Text>
-        <View style={styles.presetRow}>
-          {PRESETS.map((p) => {
-            const on = preset === p.key;
+        {/* Activities */}
+        <Text style={styles.section}>Activities</Text>
+        <View style={styles.grid}>
+          {ACTIVITIES.map((a) => {
+            const on = source.kind === 'activity' && source.key === a.key;
             return (
               <Pressable
-                key={p.key}
-                onPress={() => pickPreset(p.key)}
+                key={a.key}
+                onPress={() => applySource({ kind: 'activity', key: a.key })}
                 disabled={!connected}
                 style={[
-                  styles.preset,
-                  {
-                    borderColor: on ? p.color : Colors.border,
-                    backgroundColor: on ? p.color + '22' : Colors.bg2,
-                  },
+                  styles.tile,
+                  { borderColor: on ? a.color : Colors.border, backgroundColor: on ? a.color + '22' : Colors.bg2 },
                 ]}
               >
-                <Text style={[styles.presetText, { color: on ? p.color : Colors.text }]}>
-                  {p.label}
-                </Text>
+                <Text style={styles.tileEmoji}>{a.emoji}</Text>
+                <Text style={[styles.tileLabel, { color: on ? a.color : Colors.text }]}>{a.label}</Text>
+                <Text style={styles.tileBlurb}>{a.blurb}</Text>
               </Pressable>
             );
           })}
         </View>
 
-        {/* Speed (not for Steady) */}
-        {preset !== 'steady' && (
-          <View style={styles.sliderBlock}>
-            <View style={styles.sliderHeader}>
-              <Text style={styles.sliderLabel}>Speed</Text>
-              <Text style={styles.sliderValue}>{speed}%</Text>
+        {/* Power mode */}
+        <Text style={styles.section}>Power</Text>
+        <View style={styles.segment}>
+          {POWER_MODES.map((m) => {
+            const on = powerMode === m.key;
+            return (
+              <Pressable
+                key={m.key}
+                onPress={() => onPowerMode(m.key)}
+                style={[
+                  styles.segItem,
+                  { backgroundColor: on ? Colors.accent : Colors.bg2, borderColor: on ? Colors.accent : Colors.border },
+                ]}
+              >
+                <Text style={[styles.segLabel, { color: on ? Colors.bg : Colors.text }]}>{m.label}</Text>
+                <Text style={[styles.segBlurb, { color: on ? Colors.bg : Colors.muted }]}>{m.blurb}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        {showSaverNudge && (
+          <Pressable style={styles.nudge} onPress={() => onPowerMode('endurance')}>
+            <Text style={styles.nudgeText}>
+              Battery at {battery.pct}% - tap to switch to Endurance and stretch runtime
+            </Text>
+          </Pressable>
+        )}
+
+        {/* Safety */}
+        <Text style={styles.section}>Safety</Text>
+        <View style={styles.safetyRow}>
+          {SAFETY.map((s) => (
+            <Pressable
+              key={s.action}
+              onPress={() => onSafety(s.action)}
+              disabled={!connected}
+              style={[styles.safetyBtn, { borderColor: s.color }]}
+            >
+              <Text style={[styles.safetyText, { color: s.color }]}>{s.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Presets + Speed (Store mode only) */}
+        {showPresets && (
+          <>
+            <Text style={styles.section}>Presets</Text>
+            <View style={styles.presetRow}>
+              {PRESETS.map((p) => {
+                const on = source.kind === 'preset' && source.preset === p.key;
+                return (
+                  <Pressable
+                    key={p.key}
+                    onPress={() => applySource({ kind: 'preset', preset: p.key })}
+                    disabled={!connected}
+                    style={[
+                      styles.preset,
+                      { borderColor: on ? p.color : Colors.border, backgroundColor: on ? p.color + '22' : Colors.bg2 },
+                    ]}
+                  >
+                    <Text style={[styles.presetText, { color: on ? p.color : Colors.text }]}>{p.label}</Text>
+                  </Pressable>
+                );
+              })}
             </View>
-            <Slider
-              minimumValue={0}
-              maximumValue={100}
-              step={1}
-              value={speed}
-              onValueChange={onSpeed}
-              minimumTrackTintColor={orbColor}
-              maximumTrackTintColor={Colors.bg4}
-              thumbTintColor={orbColor}
-            />
-          </View>
+
+            {source.kind === 'preset' && source.preset !== 'steady' && (
+              <View style={styles.sliderBlock}>
+                <View style={styles.sliderHeader}>
+                  <Text style={styles.sliderLabel}>Speed</Text>
+                  <Text style={styles.sliderValue}>{speed}%</Text>
+                </View>
+                <Slider
+                  minimumValue={0}
+                  maximumValue={100}
+                  step={1}
+                  value={speed}
+                  onValueChange={onSpeed}
+                  minimumTrackTintColor={orbColor}
+                  maximumTrackTintColor={Colors.bg4}
+                  thumbTintColor={orbColor}
+                />
+              </View>
+            )}
+          </>
         )}
 
         {!connected && (
@@ -202,6 +326,8 @@ const ORB = 220;
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bg },
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxl * 2, alignItems: 'stretch' },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  headerText: { flex: 1 },
   brand: { color: Colors.text, fontSize: 30, fontWeight: '800', letterSpacing: 1 },
   tagline: { color: Colors.muted, fontSize: 13, marginBottom: Spacing.lg },
 
@@ -238,6 +364,53 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
     marginBottom: Spacing.md,
   },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  tile: {
+    width: '48.5%',
+    borderWidth: 1.5,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  tileEmoji: { fontSize: 22 },
+  tileLabel: { fontSize: 15, fontWeight: '700', marginTop: 4 },
+  tileBlurb: { color: Colors.muted, fontSize: 11, marginTop: 2, lineHeight: 15 },
+
+  segment: { flexDirection: 'row', justifyContent: 'space-between' },
+  segItem: {
+    flex: 1,
+    marginHorizontal: 4,
+    borderWidth: 1.5,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  segLabel: { fontSize: 14, fontWeight: '700' },
+  segBlurb: { fontSize: 10, marginTop: 2 },
+
+  nudge: {
+    marginTop: Spacing.md,
+    borderColor: Colors.battery.low,
+    borderWidth: 1,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.battery.low + '18',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  nudgeText: { color: Colors.battery.low, fontSize: 12, fontWeight: '600', textAlign: 'center' },
+
+  safetyRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  safetyBtn: {
+    flex: 1,
+    marginHorizontal: 4,
+    borderWidth: 1.5,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+  },
+  safetyText: { fontSize: 13, fontWeight: '700' },
+
   presetRow: { flexDirection: 'row', justifyContent: 'space-between' },
   preset: {
     flex: 1,

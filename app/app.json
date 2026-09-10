@@ -48,6 +48,19 @@
           "bluetoothAlwaysPermission": "Ware uses Bluetooth to connect to and control your Ware light controller."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e905734f-f532-47ce-9b95-c10ee3150cff"
+      }
+    },
+    "owner": "ellumiglow",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e905734f-f532-47ce-9b95-c10ee3150cff"
+    }
   }
 }

@@ -32,6 +32,8 @@ export default function Settings() {
   const demoMode = useAppStore((s) => s.demoMode);
   const enableDemo = useAppStore((s) => s.enableDemo);
   const disableDemo = useAppStore((s) => s.disableDemo);
+  const wearMode = useAppStore((s) => s.wearMode);
+  const setWearMode = useAppStore((s) => s.setWearMode);
 
   const connected = status === 'connected';
   const scanning = status === 'scanning';
@@ -68,6 +70,25 @@ export default function Settings() {
           {!connected && scanning && devices.length === 0 ? (
             <Text style={styles.hint}>Looking for nearby Ware controllers...</Text>
           ) : null}
+        </Section>
+
+        <Section title="Mode">
+          <View style={styles.demoRow}>
+            <View style={{ flex: 1, paddingRight: Spacing.md }}>
+              <Text style={styles.demoTitle}>Wear mode</Text>
+              <Text style={styles.hint}>
+                Simplified layout for when the light is worn: orb, activities,
+                power, and safety only. Turn off for the full Store layout with
+                pattern presets and speed.
+              </Text>
+            </View>
+            <Switch
+              value={wearMode}
+              onValueChange={setWearMode}
+              trackColor={{ false: Colors.bg4, true: Colors.accent + '88' }}
+              thumbColor={wearMode ? Colors.accent : Colors.muted}
+            />
+          </View>
         </Section>
 
         <Section title="Demo mode">

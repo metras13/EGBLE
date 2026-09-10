@@ -27,6 +27,14 @@ export const Colors = {
     SEQUENCE: '#e8458b',
     FLAME: '#ff6b35',
   },
+
+  // Battery tiers, matching the backlit-label concept: white / orange / red.
+  battery: {
+    good: '#f4f0e6',
+    low: '#f0a83c',
+    critical: '#e05050',
+    charging: '#38d6c8',
+  },
 } as const;
 
 export const Radius = {

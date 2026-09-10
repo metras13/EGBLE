@@ -12,7 +12,7 @@
  */
 
 import { BleCallbacks } from './bleManager';
-import { DeviceState, ChannelState, SceneList } from './protocol';
+import { DeviceState, ChannelState, SceneList, BatteryState } from './protocol';
 import { PatternConfig, PatternType, DEFAULT_PATTERN } from '../constants/patterns';
 
 interface DemoChannel {
@@ -38,6 +38,7 @@ class DemoController {
   private channels: DemoChannel[] = [];
   private slots: (string | null)[] = new Array(8).fill(null);
   private timer: ReturnType<typeof setInterval> | null = null;
+  private batStartMs = 0;
 
   init(cb: BleCallbacks) {
     this.cb = cb;
@@ -55,6 +56,7 @@ class DemoController {
       flameTarget: 0,
       flameNextMs: 0,
     }));
+    this.batStartMs = Date.now();
     this.cb?.onStatus('connected', 'Demo Controller');
     this.emitScenes();
     this.emitState();
@@ -251,6 +253,14 @@ class DemoController {
     }
   }
 
+  // Demo battery: drains ~1% every 2s and wraps, so a show-floor demo cycles
+  // through the white / orange / red tiers over a couple of minutes.
+  private demoBattery(now: number): BatteryState {
+    let pct = 95 - Math.floor((now - this.batStartMs) / 2000);
+    pct = ((pct % 100) + 100) % 100;
+    return { present: true, pct, charging: false };
+  }
+
   private buildState(): DeviceState {
     const now = Date.now();
     const channels: ChannelState[] = this.channels.map((ch, i) => ({
@@ -261,7 +271,7 @@ class DemoController {
       scale: ch.scale,
       level: this.computeLevel(ch, i, now),
     }));
-    return { version: 'demo', channels };
+    return { version: 'demo', channels, battery: this.demoBattery(now) };
   }
 
   private emitState() {
