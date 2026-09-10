@@ -33,8 +33,11 @@ import {
   ChannelState,
   DeviceState,
   SceneList,
+  BatteryState,
+  ABSENT_BATTERY,
 } from '../ble/protocol';
 import { PatternConfig } from '../constants/patterns';
+import { PowerMode } from '../constants/activities';
 
 interface FoundDevice {
   id: string;
@@ -51,11 +54,14 @@ interface AppState {
   // Live controller state (from notifications)
   channels: ChannelState[];
   scenes: SceneList;
+  battery: BatteryState;
 
   // User preferences (persisted)
   masterBrightness: number;   // 0..255, the orb dim level
   channelCount: number;       // how many channels this build uses (1..6)
   onboarded: boolean;         // has the splash walkthrough been seen
+  wearMode: boolean;          // true = simplified worn layout; false = full Store layout
+  powerMode: PowerMode;       // trades brightness for runtime
 
   // Demo Mode (not persisted): drive the app from an in-app simulator so every
   // screen works with no controller attached.
@@ -78,6 +84,8 @@ interface AppState {
   setMasterBrightness: (v: number) => void;
   setChannelCount: (n: number) => void;
   setOnboarded: (v: boolean) => void;
+  setWearMode: (v: boolean) => void;
+  setPowerMode: (m: PowerMode) => void;
 
   // Actions - channel control
   setPattern: (ch: number, cfg: PatternConfig) => void;
@@ -114,10 +122,13 @@ export const useAppStore = create<AppState>()(
       lastDeviceId: null,
       channels: [],
       scenes: EMPTY_SCENES,
+      battery: ABSENT_BATTERY,
 
       masterBrightness: 200,
       channelCount: 6,
       onboarded: false,
+      wearMode: false,
+      powerMode: 'bright',
       demoMode: false,
       hasHydrated: false,
 
@@ -125,6 +136,8 @@ export const useAppStore = create<AppState>()(
         set({ masterBrightness: Math.max(0, Math.min(255, Math.round(v))) }),
       setChannelCount: (n) => set({ channelCount: Math.max(1, Math.min(6, Math.round(n))) }),
       setOnboarded: (v) => set({ onboarded: v }),
+      setWearMode: (v) => set({ wearMode: v }),
+      setPowerMode: (m) => set({ powerMode: m }),
 
       setAllPattern: (cfg) => {
         active().sendCommand(cmdPatternAll(cfg));
@@ -134,7 +147,7 @@ export const useAppStore = create<AppState>()(
         // Both backends share the same callbacks; only the active one emits.
         const cb: BleCallbacks = {
           onStatus: (status, detail) => set({ status, statusDetail: detail ?? '' }),
-          onState: (state: DeviceState) => set({ channels: state.channels }),
+          onState: (state: DeviceState) => set({ channels: state.channels, battery: state.battery }),
           onScenes: (scenes: SceneList) => set({ scenes }),
           onDeviceFound: (id, name) =>
             set((s) =>
@@ -160,7 +173,7 @@ export const useAppStore = create<AppState>()(
         ble.connect(id);
       },
       disconnect: () => {
-        if (get().demoMode) { demo.disconnect(); set({ demoMode: false, channels: [] }); }
+        if (get().demoMode) { demo.disconnect(); set({ demoMode: false, channels: [], battery: ABSENT_BATTERY }); }
         else ble.disconnect();
       },
 
@@ -171,7 +184,7 @@ export const useAppStore = create<AppState>()(
       },
       disableDemo: () => {
         demo.disconnect();
-        set({ demoMode: false, channels: [] });
+        set({ demoMode: false, channels: [], battery: ABSENT_BATTERY });
       },
 
       setPattern: (ch, cfg) => {
@@ -217,6 +230,8 @@ export const useAppStore = create<AppState>()(
         masterBrightness: state.masterBrightness,
         channelCount: state.channelCount,
         onboarded: state.onboarded,
+        wearMode: state.wearMode,
+        powerMode: state.powerMode,
       }),
 
       onRehydrateStorage: () => () => {

@@ -116,9 +116,28 @@ export interface ChannelState {
   level: number;
 }
 
+/** Battery of the mounted swap cell, as reported by the inverter's VBAT sense. */
+export interface BatteryState {
+  present: boolean;   // did the device report a battery reading at all
+  pct: number;        // 0..100 state of charge
+  charging: boolean;  // on the charge pad / pigtail
+}
+
+export const ABSENT_BATTERY: BatteryState = { present: false, pct: 0, charging: false };
+
+export type BatteryTier = 'good' | 'low' | 'critical';
+
+/** Map a state-of-charge to the white / orange / red tier used everywhere. */
+export function batteryTier(pct: number): BatteryTier {
+  if (pct < 15) return 'critical';
+  if (pct < 40) return 'low';
+  return 'good';
+}
+
 export interface DeviceState {
   version: string;
   channels: ChannelState[];
+  battery: BatteryState;
 }
 
 /** Parse a state notification payload. Returns null if it does not parse. */
@@ -126,8 +145,13 @@ export function parseState(json: string): DeviceState | null {
   try {
     const o = JSON.parse(json);
     if (!o || !Array.isArray(o.ch)) return null;
+    // Battery is optional: older firmware / boards without VBAT sense omit `bat`.
+    const bat = o.bat && typeof o.bat === 'object'
+      ? { present: true, pct: clamp(Number(o.bat.p) || 0, 0, 100), charging: o.bat.ch === 1 || o.bat.ch === true }
+      : ABSENT_BATTERY;
     return {
       version: typeof o.v === 'string' ? o.v : '',
+      battery: bat,
       channels: o.ch.map((c: any) => ({
         enabled: c.e === 1 || c.e === true,
         groupId: Number(c.g) || 0,
