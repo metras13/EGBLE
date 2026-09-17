@@ -51,7 +51,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="scenes"
-        options={{ title: 'Scenes', tabBarIcon: ({ focused }) => <TabIcon emoji="✨" focused={focused} /> }}
+        options={{ title: 'Vibe', tabBarIcon: ({ focused }) => <TabIcon emoji="✨" focused={focused} /> }}
       />
       <Tabs.Screen
         name="settings"
