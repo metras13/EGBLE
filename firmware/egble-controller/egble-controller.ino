@@ -50,7 +50,10 @@ void setup() {
   Scene boot;
   if (SceneManager::builtin("Fade 6s", boot)) scenes.apply(engine, boot);
 
-  ble.begin("EGBLE-Controller", engine, scenes);
+  // Advertised BLE device name. Apple App Review (Guideline 2.3.8) requires the
+  // device the app connects to to match the store name "Ware by Ellumiglow",
+  // so the controller advertises as "Ware" (was "EGBLE-Controller").
+  ble.begin("Ware", engine, scenes);
   console.begin(engine, scenes, ble);
 
   if (TRIGGER_PIN >= 0) pinMode(TRIGGER_PIN, INPUT_PULLUP);

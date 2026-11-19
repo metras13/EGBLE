@@ -2,16 +2,27 @@
 
 Covers the two rejection items from the 2026-09-01 review (Guideline 2.1 and Guideline 2.3.8).
 
-## 2.3.8 Accurate Metadata (name mismatch) - FIXED in code
+## 2.3.8 Accurate Metadata (name mismatch) - FIXED in code (V1.1)
 
-Apple saw "EGBLE" on the device while the store listing said "Ware by Ellumiglow".
-The build manifest (`app/app.json`) now sets `expo.name` to **Ware**, so the next
-build shows "Ware" on the Home screen and springboard. No action left here beyond
-rebuilding and resubmitting.
+Two separate names had to match "Ware by Ellumiglow", and the first pass only fixed one:
 
-Optional: in App Store Connect, consider setting the marketplace name to just
-**Ware** (or keep "Ware by Ellumiglow"). Either is fine now that the device name is
-"Ware" - they only need to be similar, not identical.
+1. **App name on the device** (fixed in V1.0 resubmit): `app/app.json` sets
+   `expo.name` to **Ware**, so the Home screen / springboard icon reads "Ware".
+
+2. **The Bluetooth device name** (THIS was still wrong, fixed in V1.1): the
+   controller firmware was advertising as **"EGBLE-Controller"**, so when the
+   reviewer scanned over Bluetooth the device did not match "Ware". Fixed in
+   `firmware/egble-controller/egble-controller.ino` - the controller now
+   advertises as **"Ware"** (`ble.begin("Ware", ...)`). The app's scan filter
+   (`app/src/ble/uuids.ts`, `bleManager.ts`) now matches "Ware", and still
+   accepts the legacy "EGBLE" prefix so controllers on old firmware keep pairing.
+
+ACTION REQUIRED: the physical controller(s) used for review must be **reflashed**
+with the updated firmware so they advertise as "Ware". The service UUID is
+unchanged, so an un-reflashed controller still works with the app, but it would
+still show the old "EGBLE-Controller" name to a reviewer scanning Bluetooth.
+
+Version bumped to 1.1.0 (iOS buildNumber 2 / Android versionCode 2).
 
 ## 2.1 App Completeness (demo video) - needs a video you film
 
