@@ -19,6 +19,7 @@ import {
   EGBLE_STATE_UUID,
   EGBLE_SCENE_UUID,
   EGBLE_NAME_PREFIX,
+  EGBLE_LEGACY_NAME_PREFIX,
 } from './uuids';
 import { encodeBase64, decodeBase64 } from './base64';
 import { DeviceState, SceneList, parseState, parseScenes } from './protocol';
@@ -62,9 +63,14 @@ class EgbleBle {
         if (!device) return;
         const name = device.name ?? device.localName ?? '';
         // The service filter is the primary gate; the name check is a fallback
-        // for stacks that do not honor the service filter during scan.
-        if (name.startsWith(EGBLE_NAME_PREFIX) || device.serviceUUIDs?.includes(EGBLE_SERVICE_UUID)) {
-          this.cb?.onDeviceFound(device.id, name || 'EGBLE Controller');
+        // for stacks that do not honor the service filter during scan. Accept
+        // both the current "Ware" name and the legacy "EGBLE" name so older
+        // controllers still pair after the rename.
+        const nameMatches =
+          name.startsWith(EGBLE_NAME_PREFIX) ||
+          name.startsWith(EGBLE_LEGACY_NAME_PREFIX);
+        if (nameMatches || device.serviceUUIDs?.includes(EGBLE_SERVICE_UUID)) {
+          this.cb?.onDeviceFound(device.id, name || 'Ware Controller');
         }
       },
     );
